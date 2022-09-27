@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindMyBondi</title>
+</head>
+<body>
+    <p id="result"></p>
+    <p id="time"></p>
+    <script>
+        const result = document.getElementById("result")
+        const time = document.getElementById("time")
+        function show(text) {
+            result.textContent = text
+        }
+        if (navigator.geolocation === undefined) {
+            show("bro no puedo usar el gps")
+        }
+
+        let pps = 0
+
+        setInterval(() => {
+            time.textContent = `${pps} pps`
+            pps = 0
+        }, 1000)
+
+        navigator.geolocation.watchPosition((pos) =>{
+            fetch("https://bondi-server.herokuapp.com/api/coordenadas", {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({entity: "b", coord: [pos.coords.latitude, pos.coords.longitude]})
+            })
+                .then(res => console.log(res))
+                .catch(err => console.error(err))
+            show(`lat: ${pos.coords.latitude} long: ${pos.coords.longitude}`)
+            pps ++
+        }, (err) => {
+            console.error(err)
+        }, {
+            enableHighAccuracy: true,
+            timeout: 5000,
+        })
+    </script>
+</body>
+</html>
